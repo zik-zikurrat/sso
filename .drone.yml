@@ -1,0 +1,23 @@
+kind: pipeline
+type: docker
+name: deploy-sso
+
+steps:
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host: 37.27.33.141
+      username: deploy
+      port: 22
+      key:
+        from_secret: ssh_key
+      script:
+        - cd ~/sso
+        - git pull origin main
+        - docker compose up -d --build sso
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
