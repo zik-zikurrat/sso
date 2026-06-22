@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+
+vars:
+  DB_DSN: "postgresql://postgres:postgres@localhost:5432/sso?sslmode=disable"
+
+tasks:
+  pg-up:
+    desc: "Start local Postgres in Docker"
+    cmds:
+      - |
+        docker run -d --name sso-postgres \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_PASSWORD=postgres \
+          -e POSTGRES_DB=sso \
+          -p 5432:5432 \
+          postgres:16-alpine
+
+  pg-down:
+    desc: "Stop and remove local Postgres"
+    cmds:
+      - docker rm -f sso-postgres
+
+  pg-logs:
+    cmds:
+      - docker logs -f sso-postgres
+
+  mig-up:
+    desc: "Apply migrations"
+    cmds:
+      - migrate -path ./migrations -database "{{.DB_DSN}}" up
+
+  mig-down:
+    desc: "Rollback one migration"
+    cmds:
+      - migrate -path ./migrations -database "{{.DB_DSN}}" down 1
+
+  mig-force:
+    desc: "Force migration version"
+    cmds:
+      - migrate -path ./migrations -database "{{.DB_DSN}}" force {{.VERSION}}
+
+  mig-version:
+    desc: "Show migration version"
+    cmds:
+      - migrate -path ./migrations -database "{{.DB_DSN}}" version
+
+  mig-create:
+    desc: "Create migration"
+    requires:
+      vars:
+        - NAME
+    cmds:
+      - migrate create -ext sql -dir migrations -format "20060102150405" {{.NAME}}
+
+  mock-gen:
+    desc: Generate mocks for testing
+    cmds:
+      - echo "{{.GREETING}}"
