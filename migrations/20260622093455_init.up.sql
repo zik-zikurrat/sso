@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS services (
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     login VARCHAR(255) NOT NULL UNIQUE,
     role VARCHAR(50) NOT NULL CHECK (
