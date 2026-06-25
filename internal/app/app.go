@@ -23,7 +23,7 @@ import (
 func Run(cfg *config.Config) error {
 	Migrate(cfg)
 	log := SetupLogger(cfg.Logging)
-	log.Info("starting application", slog.Any("config", cfg))
+	log.Info("starting application", slog.String("host", cfg.Server.HOST), slog.Int("port", cfg.Server.PORT))
 	pg, err := postgres.New(cfg, log)
 	if err != nil {
 		log.Error("app - Run - postgres.New", slog.String("error", err.Error()))
@@ -44,7 +44,7 @@ func Run(cfg *config.Config) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	grpcServer := grpcSrv.New(grpcCtrl.NewMux(registryCtrl), cfg)
+	grpcServer := grpcSrv.New(grpcCtrl.NewMux(registryCtrl), cfg, log)
 	go grpcServer.Start()
 
 	httpserver := httpserver.New(ctx, log, cfg)

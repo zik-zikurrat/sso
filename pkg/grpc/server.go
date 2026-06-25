@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"log/slog"
 	"net"
 	"net/http"
 	"sso/internal/config"
@@ -10,10 +11,11 @@ import (
 
 type Server struct {
 	httpServer *http.Server
+	logger     *slog.Logger
 	notify     chan error
 }
 
-func New(mux http.Handler, cfg *config.Config) *Server {
+func New(mux http.Handler, cfg *config.Config, l *slog.Logger) *Server {
 	addr := net.JoinHostPort(cfg.Server.HOST, strconv.Itoa(cfg.GRPC.Port))
 	srv := &http.Server{
 		Addr:    addr,
@@ -27,6 +29,7 @@ func New(mux http.Handler, cfg *config.Config) *Server {
 
 	return &Server{
 		httpServer: srv,
+		logger:     l,
 		notify:     make(chan error, 1),
 	}
 }
@@ -37,6 +40,7 @@ func (s *Server) Start() {
 			s.notify <- err
 		}
 	}()
+	s.logger.Info("gRPC server - Server - Started")
 }
 
 // Notify -.
@@ -44,5 +48,6 @@ func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 func (s *Server) Shutdown(ctx context.Context) error {
+	s.logger.Info("gRPC server - Server - Shutdown")
 	return s.httpServer.Shutdown(ctx)
 }
