@@ -16,6 +16,13 @@ type GetUser struct {
 	UpdatedAt time.Time
 }
 
+type CreateUserRepo struct {
+	Email        string
+	PasswordHash []byte
+	Login        string
+	Role         string
+}
+
 type CreateUser struct {
 	Email    string
 	Password string
@@ -24,7 +31,7 @@ type CreateUser struct {
 }
 
 type UpdateUser struct {
-	ID       uuid.UUID
+	ID       *uuid.UUID
 	Email    *string
 	Password *string
 	Login    *string
