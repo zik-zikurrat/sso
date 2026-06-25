@@ -3,7 +3,7 @@ package grpc
 import (
 	"net/http"
 
-	"buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go/proto/sso/v1/ssov1connect"
+	"buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go/sso/v1/ssov1connect"
 )
 
 func NewMux(auth *AuthController, registry *RegistryController) http.Handler {
