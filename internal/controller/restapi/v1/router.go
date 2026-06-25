@@ -10,19 +10,21 @@ import (
 func NewSSORoutes(
 	apiV1Group fiber.Router,
 	l *slog.Logger,
+
+	registry RegistryUseCase,
 ) {
 	r := &V1{
-		l: l,
-		v: validator.New(validator.WithRequiredStructEnabled()),
+		l:        l,
+		v:        validator.New(validator.WithRequiredStructEnabled()),
+		registry: registry,
 	}
-	trainingGroup := apiV1Group.Group("/training")
+	registryGroup := apiV1Group.Group("/registry")
 
 	{
 		// RegistryService
-		trainingGroup.Post("/structure", r.CreateStructure)
-		trainingGroup.Get("/structure", r.ListStructure)
-		trainingGroup.Get("/structure/:id", r.GetStructure)
-		trainingGroup.Patch("/structure/:id", r.UpdateStructure)
-		trainingGroup.Delete("/structure/:id", r.DeleteStructure)
+		registryGroup.Get("/service", r.ListService)
+		registryGroup.Get("/service/:id", r.GetServiceByID)
+		// registryGroup.Patch("/service/:id", r.UpdateService)
+		// registryGroup.Delete("/service/:id", r.DeleteService)
 	}
 }

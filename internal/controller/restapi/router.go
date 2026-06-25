@@ -5,7 +5,6 @@ import (
 	"sso/internal/config"
 	"sso/internal/controller/restapi/middleware"
 	v1 "sso/internal/controller/restapi/v1"
-	"sso/internal/usecase/registry"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -25,7 +24,7 @@ func NewRouter(
 	cfg *config.Config,
 	pool *pgxpool.Pool,
 	l *slog.Logger,
-	registry registry.UseCase,
+	registry v1.RegistryUseCase,
 ) {
 
 	app.Use(recover.New())

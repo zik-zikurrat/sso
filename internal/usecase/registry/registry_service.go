@@ -5,14 +5,12 @@ import (
 	"log/slog"
 	"sso/internal/entity"
 	"sso/internal/usecase/dto/registry"
-
-	"github.com/google/uuid"
 )
 
 type RegistryRepo interface {
 	CreateService(ctx context.Context, in registry.CreateService) error
-	UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error)
-	DeleteService(ctx context.Context, in uuid.UUID) error
+	// UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error)
+	// DeleteService(ctx context.Context, in uuid.UUID) error
 	ListService(ctx context.Context) ([]entity.Service, error)
 	GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error)
 }
