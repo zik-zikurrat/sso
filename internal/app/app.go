@@ -2,17 +2,22 @@ package app
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"os"
 	"os/signal"
 	"sso/internal/config"
+	grpcCtrl "sso/internal/controller/grpc"
 	"sso/internal/controller/restapi"
+	"sso/internal/repo/persistent"
 	"sso/internal/usecase/registry"
+	grpcSrv "sso/pkg/grpc"
 	"sso/pkg/httpserver"
 	sloghandler "sso/pkg/logger"
 	"sso/pkg/postgres"
 	"syscall"
+	"time"
 )
 
 func Run(cfg *config.Config) error {
@@ -27,23 +32,28 @@ func Run(cfg *config.Config) error {
 	defer pg.Close()
 
 	// Repo
-	userRepo := postgres.NewUserRepo(pg.Pool)
-	registryRepo := postgres.NewRegistryRepo(pg.Pool)
+	// userRepo := postgres.NewUserRepo(pg.Pool)
+	registryRepo := persistent.NewRegistryRepo(pg.Pool)
 	// UseCase
-	authUC := auth.NewUseCase(userRepo, log)
-	registryUC := registry.NewUseCase(registryRepo, log)
+	// authUC := auth.NewUseCase(userRepo, log)
+	registryUC := registry.NewRegistryUseCase(log, registryRepo)
 	// Controller
-	authCtrl := grpccontroller.NewAuthController(authUC, log)
-	registryCtrl := grpccontroller.NewRegistryController(registryUC, log)
+	// authCtrl := grpccontroller.NewAuthController(authUC, log)
+	registryCtrl := grpcCtrl.NewRegistryController(log, registryUC)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	grpcServer := grpcSrv.New(grpcCtrl.NewMux(registryCtrl), cfg)
+	go grpcServer.Start()
+
 	httpserver := httpserver.New(ctx, log, cfg)
 	restapi.NewRouter(
 		httpserver.App,
 		cfg,
 		pg.Pool,
 		log,
+		registryUC,
 	)
 	httpserver.Start()
 
@@ -52,9 +62,17 @@ func Run(cfg *config.Config) error {
 		log.Info("app - Run - shutdown signal received")
 	case err := <-httpserver.Notify():
 		log.Error("app - Run - httpserver.Notify", slog.String("error", err.Error()))
+	case err := <-grpcServer.Notify():
+		log.Error("app - Run - grpcserver.Notify", slog.String("error", err.Error()))
 	}
 
-	return httpserver.Shutdown()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.GRPC.Timeout*time.Second)
+	defer cancel()
+	shutdownErr := []error{
+		httpserver.Shutdown(),
+		grpcServer.Shutdown(shutdownCtx),
+	}
+	return errors.Join(shutdownErr...)
 }
 
 func SetupLogger(cfg config.LoggingConfig) *slog.Logger {

@@ -2,32 +2,52 @@ package grpc
 
 import (
 	"context"
-	"log/slog"
+	"sso/internal/usecase/dto/auth"
 
-	ssov1 "buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go/proto/sso/v1"
+	"buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go/sso/v1/ssov1connect"
+	ssov1 "buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go/sso/v1"
 	"connectrpc.com/connect"
 )
 
+type AuthUseCase interface {
+	Register(ctx context.Context, in auth.CreateUser) (string, error)
+	Login(ctx context.Context, email, password string, appID int32) (string, error)
+	IsAdmin(ctx context.Context, userID string) (bool, error)
+	IsDemo(ctx context.Context, userID string) (bool, error)
+}
+
 type AuthController struct {
-	auth AuthUseCase
-	log  *slog.Logger
+	uc AuthUseCase
 }
 
-func NewAuthController(auth AuthUseCase, log *slog.Logger) *AuthController {
-	return &AuthController{auth: auth, log: log}
+func NewAuthController(uc AuthUseCase) *AuthController {
+	return &AuthController{uc: uc}
 }
 
-func (c *AuthController) Register(
-	ctx context.Context,
-	req *connect.Request[ssov1.RegisterRequest],
-) (*connect.Response[ssov1.RegisterResponse], error) {
-	// 1. достать данные из proto-сообщения
-	// 2. позвать usecase (вся логика там)
-	userID, err := c.auth.Register(ctx, req.Msg.GetLogin(), req.Msg.GetEmail(), req.Msg.GetPassword())
+var _ ssov1connect.AuthServiceHandler = (*AuthController)(nil)
+
+func (c *AuthController) Register(ctx context.Context, req *connect.Request[ssov1.RegisterRequest]) (*connect.Response[ssov1.RegisterResponse], error) {
+	id, err := c.uc.Register(ctx, auth.CreateUser{
+		Login:    req.Msg.GetLogin(),
+		Email:    req.Msg.GetEmail(),
+		Password: req.Msg.GetPassword(),
+	})
 	if err != nil {
-		// перевести доменную ошибку в connect.Error
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	// 3. обернуть результат в proto-ответ
-	return connect.NewResponse(&ssov1.RegisterResponse{UserId: userID}), nil
+	return connect.NewResponse(&ssov1.RegisterResponse{UserId: id}), nil
 }
+
+func (c *AuthController) IsAdmin(ctx context.Context, req *connect.Request[ssov1.IsAdminRequest]) (*connect.Response[ssov1.IsAdminResponse], error) {
+	panic("NOT IMPLEMENTED")
+}
+
+func (c *AuthController) IsDemo(ctx context.Context, req *connect.Request[ssov1.IsDemoRequest]) (*connect.Response[ssov1.IsDemoResponse], error) {
+	panic("NOT IMPLEMENTED")
+}
+
+func (c *AuthController) Login(ctx context.Context, req *connect.Request[ssov1.LoginRequest]) (*connect.Response[ssov1.LoginResponse], error) {
+	panic("NOT IMPLEMENTED")
+}
+
+// Login, IsAdmin, IsDemo аналогично
