@@ -1,11 +1,18 @@
-CREATE TABLE IF NOT EXISTS services (
+CREATE TABLE services (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(50) NOT NULL, 
-    method VARCHAR(25) NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE endpoints (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    service_id UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    method VARCHAR(10) NOT NULL,
     url VARCHAR(255) NOT NULL,
     secure BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    UNIQUE(service_id, method, url)
 );
 
 CREATE TABLE IF NOT EXISTS users (

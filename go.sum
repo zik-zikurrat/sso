@@ -1,7 +1,11 @@
 buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go v1.20.0-20260625044549-4f71ce21dd49.1 h1:7ca6cyA75bFqelb4+srEZWZYABbOptKyWLMvZEaoif4=
 buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go v1.20.0-20260625044549-4f71ce21dd49.1/go.mod h1:tMbdxRQYcNUBliRamnIRwMbvmtPD0CQl7UOPaCakSNk=
+buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go v1.20.0-20260625125942-dec545b45f08.1 h1:8atzbjxA5ihdk12TCwsEVkvCJcbkVJU588yCE/n5ktU=
+buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go v1.20.0-20260625125942-dec545b45f08.1/go.mod h1:PVojMhqvvWVR8pzBcmYvfnBH3CtNKDp54OnA3ce7ZjM=
 buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go v1.36.11-20260625044549-4f71ce21dd49.1 h1:G0W6KbXrv/nctGECgoyCtaZfLJM5N/qJuIc4qPUiRO0=
 buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go v1.36.11-20260625044549-4f71ce21dd49.1/go.mod h1:2JbF/lJ+bZIBAPu7L8QhhBTCX+WhqmqbhUhQfW+vFm8=
+buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go v1.36.11-20260625125942-dec545b45f08.1 h1:nub73yEZxf/rb4m70J47U2JGVMO26WpNilR4C0cpTCs=
+buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go v1.36.11-20260625125942-dec545b45f08.1/go.mod h1:2JbF/lJ+bZIBAPu7L8QhhBTCX+WhqmqbhUhQfW+vFm8=
 connectrpc.com/connect v1.20.0 h1:6TNDAB+WeNd2uolWNlYczB5E0KNNaVMNUEx8JEUsPmQ=
 connectrpc.com/connect v1.20.0/go.mod h1:A2ygJrukXwWy32vkCAAHNVguZrqZ+jeZ9rGRnGR4dN4=
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25UVaW/CKtUDjefjrs0SPonmDGUVOYP0=

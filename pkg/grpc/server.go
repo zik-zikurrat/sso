@@ -43,7 +43,6 @@ func (s *Server) Start() {
 	s.logger.Info("gRPC server - Server - Started")
 }
 
-// Notify -.
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
