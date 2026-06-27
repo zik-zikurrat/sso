@@ -4,12 +4,14 @@ import (
 	"context"
 	"log/slog"
 	"sso/internal/entity"
+	"sso/internal/usecase/dto/registry"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type RegistryUseCase interface {
-	ListService(ctx context.Context) ([]entity.Service, error)
+	RegisterService(ctx context.Context, in registry.CreateService) (string, error)
+	ListService(ctx context.Context) ([]registry.ListService, error)
 	GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error)
 }
 

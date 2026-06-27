@@ -18,10 +18,16 @@ var updateUserQuery string
 var deleteServiceQuery string
 
 //go:embed query/registry/insert_service.sql
-var insertServicerQuery string
+var insertServiceQuery string
+
+//go:embed query/registry/insert_endpoint.sql
+var insertEndpointQuery string
 
 //go:embed query/registry/select_service.sql
 var selectServiceQuery string
+
+//go:embed query/registry/select_endpoint_by_service.sql
+var selectEndpointsByServiceQuery string
 
 //go:embed query/registry/update_service.sql
 var updateServiceQuery string

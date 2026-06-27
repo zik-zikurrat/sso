@@ -25,15 +25,7 @@ func (r *V1) ListService(ctx *fiber.Ctx) error {
 		r.l.Error("restapi - v1 - service", slog.String("error", err.Error()))
 		return errorResponse(ctx, http.StatusInternalServerError, "error while getting services")
 	}
-	resp := make(map[string][]response.Service)
-
-	for _, service := range services {
-		resp[service.Name] = append(
-			resp[service.Name],
-			response.ToService(service),
-		)
-	}
-	return ctx.Status(http.StatusOK).JSON(resp)
+	return ctx.Status(http.StatusOK).JSON(response.ToServiceList(services))
 }
 
 // @Summary     Get service
@@ -47,16 +39,15 @@ func (r *V1) ListService(ctx *fiber.Ctx) error {
 // @Router      /registry/service [get]
 func (r *V1) GetServiceByID(ctx *fiber.Ctx) error {
 	uuidID, err := uuid.Parse(ctx.Params("id"))
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, "invalid service id")
+	}
+
 	service, err := r.registry.GetServiceByID(ctx.UserContext(), entity.ServiceIdentifier{ID: &uuidID})
 	if err != nil {
 		r.l.Error("restapi - v1 - service", slog.String("error", err.Error()))
-		return errorResponse(ctx, http.StatusInternalServerError, "error while getting services")
+		return errorResponse(ctx, http.StatusInternalServerError, "error while getting service")
 	}
-	resp := make(map[string][]response.Service)
 
-	resp[service.Name] = append(
-		resp[service.Name],
-		response.ToService(service),
-	)
-	return ctx.Status(http.StatusOK).JSON(resp)
+	return ctx.Status(http.StatusOK).JSON(response.ToService(service))
 }

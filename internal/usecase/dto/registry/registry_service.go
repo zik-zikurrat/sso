@@ -1,32 +1,42 @@
 package registry
 
 import (
+	"sso/internal/entity"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+type Endpoint struct {
+	Method string
+	URL    string
+	Secure bool
+}
+
 type GetService struct {
+	Service   entity.Service
+	Endpoints []entity.Endpoint
+}
+
+type CreateService struct {
+	Name      string
+	Endpoints []Endpoint
+}
+
+type ListService struct {
 	ID        uuid.UUID
 	Name      string
-	Method    string
-	URL       string
-	Secure    bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-type CreateService struct {
-	Name     string
-	Metadata map[string]string
-	// Method   string
-	// URL      string
-	// Secure   bool
+type UpdateService struct {
+	ID   uuid.UUID
+	Name *string
 }
 
-type UpdateService struct {
+type UpdteEndpoint struct {
 	ID     uuid.UUID
-	Name   *string
 	Method *string
 	URL    *string
 	Secure *bool

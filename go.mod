@@ -3,8 +3,8 @@ module sso
 go 1.26.1
 
 require (
-	buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go v1.20.0-20260625125942-dec545b45f08.1
-	buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go v1.36.11-20260625125942-dec545b45f08.1
+	buf.build/gen/go/zik-zikurrat-sso/sso/connectrpc/go v1.20.0-20260627064408-1fc8f9463105.1
+	buf.build/gen/go/zik-zikurrat-sso/sso/protocolbuffers/go v1.36.11-20260627064408-1fc8f9463105.1
 	connectrpc.com/connect v1.20.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/gofiber/fiber/v2 v2.52.13

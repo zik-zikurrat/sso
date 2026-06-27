@@ -8,10 +8,10 @@ import (
 )
 
 type RegistryRepo interface {
-	CreateService(ctx context.Context, in registry.CreateService) error
+	CreateService(ctx context.Context, in registry.CreateService) (string, error)
 	// UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error)
 	// DeleteService(ctx context.Context, in uuid.UUID) error
-	ListService(ctx context.Context) ([]entity.Service, error)
+	ListService(ctx context.Context) ([]registry.ListService, error)
 	GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error)
 }
 
@@ -27,15 +27,17 @@ func NewRegistryUseCase(l *slog.Logger, r RegistryRepo) *UseCase {
 	}
 }
 
-func (uc *UseCase) RegisterService(ctx context.Context, in registry.CreateService) error {
-	if err := uc.r.CreateService(ctx, in); err != nil {
+func (uc *UseCase) RegisterService(ctx context.Context, in registry.CreateService) (string, error) {
+	serviceID, err := uc.r.CreateService(ctx, in)
+	if err != nil {
 		uc.l.Error("failed to create service", slog.String("name", in.Name))
-		return err
+		return "", err
 	}
-	return nil
+
+	return serviceID, nil
 }
 
-func (uc *UseCase) ListService(ctx context.Context) ([]entity.Service, error) {
+func (uc *UseCase) ListService(ctx context.Context) ([]registry.ListService, error) {
 	services, err := uc.r.ListService(ctx)
 	if err != nil {
 		uc.l.Error("failed to list service", slog.String("error", err.Error()))

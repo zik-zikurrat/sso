@@ -6,6 +6,7 @@ import (
 	"sso/internal/entity"
 	"sso/internal/usecase/dto/registry"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,37 +22,45 @@ func NewRegistryRepo(pool *pgxpool.Pool) *RegistryRepo {
 	}
 }
 
-func (r *RegistryRepo) CreateService(ctx context.Context, in registry.CreateService) error {
-	serviceName := in.Name
+func (r *RegistryRepo) CreateService(ctx context.Context, in registry.CreateService) (string, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("create service begin: %w", err)
+		return "", fmt.Errorf("create service begin: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
-	for method, url := range in.Metadata {
-		if _, err := tx.Exec(ctx, insertServicerQuery, serviceName, method, url); err != nil {
-			return fmt.Errorf("create service insert: %w", err)
+
+	var serviceID uuid.UUID
+	err = tx.QueryRow(ctx, insertServiceQuery, in.Name).Scan(&serviceID)
+	if err != nil {
+		return "", fmt.Errorf("create service: %w", err)
+	}
+
+	for i := 0; i < len(in.Endpoints); i++ {
+		currEndpoint := in.Endpoints[i]
+		if _, err := tx.Exec(ctx, insertEndpointQuery, serviceID, currEndpoint.Method, currEndpoint.URL, currEndpoint.Secure); err != nil {
+			return "", fmt.Errorf("create service endpoint insert: %w", err)
 		}
 	}
+
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("create service commit: %w", err)
+		return "", fmt.Errorf("create service commit: %w", err)
 	}
-	return nil
+	return serviceID.String(), nil
 }
 
-func (r *RegistryRepo) ListService(ctx context.Context) ([]entity.Service, error) {
+func (r *RegistryRepo) ListService(ctx context.Context) ([]registry.ListService, error) {
 	rows, err := r.pool.Query(ctx, selectServiceQuery)
 	if err != nil {
 		return nil, fmt.Errorf("list service: %w", err)
 	}
 	defer rows.Close()
 
-	out := make([]entity.Service, 0, _defaultEntityCap)
+	out := make([]registry.ListService, 0, _defaultEntityCap)
 	for rows.Next() {
-		var e entity.Service
-		if err := rows.Scan(&e.ID, &e.Name, &e.Method, &e.URL, &e.Secure, &e.CreatedAt, &e.UpdatedAt); err != nil {
+		var e registry.ListService
+		if err := rows.Scan(&e.ID, &e.Name, &e.CreatedAt, &e.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("list service scan: %w", err)
 		}
 		out = append(out, e)
@@ -64,10 +73,29 @@ func (r *RegistryRepo) ListService(ctx context.Context) ([]entity.Service, error
 
 func (r *RegistryRepo) GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error) {
 	var s entity.Service
-	err := r.pool.QueryRow(ctx, selectServiceQuery, in.ID).Scan(&s.ID, &s.Name, &s.Method, &s.URL, &s.Secure, &s.CreatedAt, &s.UpdatedAt)
+	err := r.pool.QueryRow(ctx, selectServiceQuery, in.ID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
-		return entity.Service{}, nil
+		return entity.Service{}, fmt.Errorf("get service: %w", err)
 	}
+
+	// догрузить endpoints этого сервиса
+	rows, err := r.pool.Query(ctx, selectEndpointsByServiceQuery, s.ID)
+	if err != nil {
+		return entity.Service{}, fmt.Errorf("get service endpoints: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var e entity.Endpoint
+		if err := rows.Scan(&e.Method, &e.URL, &e.Secure); err != nil {
+			return entity.Service{}, fmt.Errorf("scan endpoint: %w", err)
+		}
+		s.Endpoints = append(s.Endpoints, e)
+	}
+	if err := rows.Err(); err != nil {
+		return entity.Service{}, fmt.Errorf("endpoints rows: %w", err)
+	}
+
 	return s, nil
 }
 

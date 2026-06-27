@@ -9,11 +9,15 @@ import (
 type Service struct {
 	ID        uuid.UUID
 	Name      string
-	Method    string
-	URL       string
-	Secure    bool
+	Endpoints []Endpoint
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Endpoint struct {
+	Method string
+	URL    string
+	Secure bool
 }
 
 type ServiceIdentifier struct {
