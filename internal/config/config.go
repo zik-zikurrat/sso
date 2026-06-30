@@ -82,7 +82,7 @@ func fetchConfigPath() string {
 		res = os.Getenv("CONFIG_PATH")
 	}
 	if res == "" {
-		res = "./config/prod.yaml"
+		res = "./config/prod.yml"
 	}
 	return res
 }
