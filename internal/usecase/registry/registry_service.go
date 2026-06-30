@@ -5,14 +5,16 @@ import (
 	"log/slog"
 	"sso/internal/entity"
 	"sso/internal/usecase/dto/registry"
+
+	"github.com/google/uuid"
 )
 
 type RegistryRepo interface {
 	CreateService(ctx context.Context, in registry.CreateService) (string, error)
 	// UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error)
 	// DeleteService(ctx context.Context, in uuid.UUID) error
-	ListService(ctx context.Context) ([]registry.ListService, error)
-	GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error)
+	ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error)
+	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error)
 }
 
 type UseCase struct {
@@ -37,8 +39,8 @@ func (uc *UseCase) RegisterService(ctx context.Context, in registry.CreateServic
 	return serviceID, nil
 }
 
-func (uc *UseCase) ListService(ctx context.Context) ([]registry.ListService, error) {
-	services, err := uc.r.ListService(ctx)
+func (uc *UseCase) ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error) {
+	services, err := uc.r.ListServiceEndpoints(ctx)
 	if err != nil {
 		uc.l.Error("failed to list service", slog.String("error", err.Error()))
 		return nil, err
@@ -46,8 +48,8 @@ func (uc *UseCase) ListService(ctx context.Context) ([]registry.ListService, err
 	return services, nil
 }
 
-func (uc *UseCase) GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error) {
-	service, err := uc.r.GetServiceByID(ctx, in)
+func (uc *UseCase) GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error) {
+	service, err := uc.r.GetServiceEndpointsByServiceID(ctx, in)
 	if err != nil {
 		uc.l.Error("failed to get service", slog.String("error", err.Error()))
 		return entity.Service{}, err

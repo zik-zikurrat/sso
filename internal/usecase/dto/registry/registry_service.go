@@ -8,9 +8,11 @@ import (
 )
 
 type Endpoint struct {
-	Method string
-	URL    string
-	Secure bool
+	ID        uuid.UUID
+	Method    string
+	URL       string
+	Secure    bool
+	CreatedAt time.Time
 }
 
 type GetService struct {
@@ -23,9 +25,10 @@ type CreateService struct {
 	Endpoints []Endpoint
 }
 
-type ListService struct {
+type ServiceWithEndpoints struct {
 	ID        uuid.UUID
 	Name      string
+	Endpoints []Endpoint
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -35,7 +38,7 @@ type UpdateService struct {
 	Name *string
 }
 
-type UpdteEndpoint struct {
+type UpdateEndpoint struct {
 	ID     uuid.UUID
 	Method *string
 	URL    *string

@@ -50,35 +50,44 @@ func (r *RegistryRepo) CreateService(ctx context.Context, in registry.CreateServ
 	return serviceID.String(), nil
 }
 
-func (r *RegistryRepo) ListService(ctx context.Context) ([]registry.ListService, error) {
-	rows, err := r.pool.Query(ctx, selectServiceQuery)
+func (r *RegistryRepo) ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error) {
+	rows, err := r.pool.Query(ctx, selectServiceWithEndpointsQuery)
 	if err != nil {
-		return nil, fmt.Errorf("list service: %w", err)
+		return nil, fmt.Errorf("list service endpoints: %w", err)
 	}
 	defer rows.Close()
 
-	out := make([]registry.ListService, 0, _defaultEntityCap)
+	out := make([]registry.ServiceWithEndpoints, 0, _defaultEntityCap)
+	indexByID := make(map[uuid.UUID]int, _defaultEntityCap)
 	for rows.Next() {
-		var e registry.ListService
-		if err := rows.Scan(&e.ID, &e.Name, &e.CreatedAt, &e.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("list service scan: %w", err)
+		var s registry.ServiceWithEndpoints
+		var e registry.Endpoint
+		if err := rows.Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt, &e.ID, &e.Method, &e.URL, &e.Secure, &e.CreatedAt); err != nil {
+			return nil, fmt.Errorf("list service endpoints scan: %w", err)
 		}
-		out = append(out, e)
+
+		idx, ok := indexByID[s.ID]
+		if !ok {
+			s.Endpoints = make([]registry.Endpoint, 0, 1)
+			out = append(out, s)
+			idx = len(out) - 1
+			indexByID[s.ID] = idx
+		}
+		out[idx].Endpoints = append(out[idx].Endpoints, e)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("list service rows: %w", err)
+		return nil, fmt.Errorf("list service endpoints rows: %w", err)
 	}
 	return out, nil
 }
 
-func (r *RegistryRepo) GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error) {
+func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error) {
 	var s entity.Service
-	err := r.pool.QueryRow(ctx, selectServiceQuery, in.ID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
+	err := r.pool.QueryRow(ctx, selectServiceWithEndpointsQuery, in.ID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
 		return entity.Service{}, fmt.Errorf("get service: %w", err)
 	}
 
-	// догрузить endpoints этого сервиса
 	rows, err := r.pool.Query(ctx, selectEndpointsByServiceQuery, s.ID)
 	if err != nil {
 		return entity.Service{}, fmt.Errorf("get service endpoints: %w", err)

@@ -7,12 +7,13 @@ import (
 	"sso/internal/usecase/dto/registry"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type RegistryUseCase interface {
 	RegisterService(ctx context.Context, in registry.CreateService) (string, error)
-	ListService(ctx context.Context) ([]registry.ListService, error)
-	GetServiceByID(ctx context.Context, in entity.ServiceIdentifier) (entity.Service, error)
+	ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error)
+	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error)
 }
 
 // V1 -.

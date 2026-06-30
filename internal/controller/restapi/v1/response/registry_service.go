@@ -1,7 +1,6 @@
 package response
 
 import (
-	"sso/internal/entity"
 	"sso/internal/usecase/dto/registry"
 	"time"
 
@@ -9,9 +8,10 @@ import (
 )
 
 type Endpoint struct {
-	Method string `json:"method"`
-	URL    string `json:"url"`
-	Secure bool   `json:"secure"`
+	Method    string    `json:"method"`
+	URL       string    `json:"url"`
+	Secure    bool      `json:"secure"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Service struct {
@@ -20,20 +20,25 @@ type Service struct {
 	Endpoints []Endpoint `json:"endpoints"`
 }
 
-func ToService(service entity.Service) Service {
-	endpoints := make([]Endpoint, 0, len(service.Endpoints))
-	for _, e := range service.Endpoints {
-		endpoints = append(endpoints, Endpoint{
-			Method: e.Method,
-			URL:    e.URL,
-			Secure: e.Secure,
+func ToServiceEndpoints(services []registry.ServiceWithEndpoints) []Service {
+	outService := make([]Service, 0, len(services))
+	for _, service := range services {
+		endpoints := make([]Endpoint, 0, len(service.Endpoints))
+		for _, e := range service.Endpoints {
+			endpoints = append(endpoints, Endpoint{
+				Method:    e.Method,
+				URL:       e.URL,
+				Secure:    e.Secure,
+				CreatedAt: e.CreatedAt,
+			})
+		}
+		outService = append(outService, Service{
+			ID:        service.ID,
+			Name:      service.Name,
+			Endpoints: endpoints,
 		})
 	}
-	return Service{
-		ID:        service.ID,
-		Name:      service.Name,
-		Endpoints: endpoints,
-	}
+	return outService
 }
 
 type ServiceListItem struct {
@@ -43,7 +48,7 @@ type ServiceListItem struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func ToServiceList(in []registry.ListService) []ServiceListItem {
+func ToServiceList(in []registry.ServiceWithEndpoints) []ServiceListItem {
 	out := make([]ServiceListItem, 0, len(in))
 	for _, s := range in {
 		out = append(out, ServiceListItem{
