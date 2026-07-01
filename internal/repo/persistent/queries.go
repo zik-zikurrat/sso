@@ -11,5 +11,8 @@ var insertEndpointQuery string
 //go:embed query/registry/list_service_with_endpoints.sql
 var selectServiceWithEndpointsQuery string
 
-//go:embed query/registry/select_endpoint_by_service.sql
-var selectEndpointsByServiceQuery string
+//go:embed query/registry/select_endpoints_by_service_id.sql
+var selectEndpointsByServiceIDQuery string
+
+//go:embed query/registry/select_service_by_id.sql
+var selectServiceByID string

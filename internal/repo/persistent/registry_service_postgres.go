@@ -83,12 +83,12 @@ func (r *RegistryRepo) ListServiceEndpoints(ctx context.Context) ([]registry.Ser
 
 func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error) {
 	var s entity.Service
-	err := r.pool.QueryRow(ctx, selectServiceWithEndpointsQuery, in.ID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
+	err := r.pool.QueryRow(ctx, selectServiceByID, in.ID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
 		return entity.Service{}, fmt.Errorf("get service: %w", err)
 	}
 
-	rows, err := r.pool.Query(ctx, selectEndpointsByServiceQuery, s.ID)
+	rows, err := r.pool.Query(ctx, selectEndpointsByServiceIDQuery, s.ID)
 	if err != nil {
 		return entity.Service{}, fmt.Errorf("get service endpoints: %w", err)
 	}
@@ -111,5 +111,4 @@ func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, in uu
 // func (r *RegistryRepo) UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error) {
 // }
 // func (r *RegistryRepo) DeleteService(ctx context.Context, in uuid.UUID) error {
-
 // }
