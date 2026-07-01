@@ -1,3 +1,3 @@
-SELECT name, created_at, updated_at
+SELECT id, name, created_at, updated_at
 FROM services
-WHERE id=$1;
+WHERE id = $1;

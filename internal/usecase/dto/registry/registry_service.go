@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"sso/internal/entity"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,11 +12,6 @@ type Endpoint struct {
 	URL       string
 	Secure    bool
 	CreatedAt time.Time
-}
-
-type GetService struct {
-	Service   entity.Service
-	Endpoints []entity.Endpoint
 }
 
 type CreateService struct {

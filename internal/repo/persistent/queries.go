@@ -15,4 +15,4 @@ var selectServiceWithEndpointsQuery string
 var selectEndpointsByServiceIDQuery string
 
 //go:embed query/registry/select_service_by_id.sql
-var selectServiceByID string
+var selectServiceByIDQuery string

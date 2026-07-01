@@ -3,7 +3,6 @@ package persistent
 import (
 	"context"
 	"fmt"
-	"sso/internal/entity"
 	"sso/internal/usecase/dto/registry"
 
 	"github.com/google/uuid"
@@ -81,28 +80,29 @@ func (r *RegistryRepo) ListServiceEndpoints(ctx context.Context) ([]registry.Ser
 	return out, nil
 }
 
-func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error) {
-	var s entity.Service
-	err := r.pool.QueryRow(ctx, selectServiceByID, in.ID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
+func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, serviceID uuid.UUID) (registry.ServiceWithEndpoints, error) {
+	var s registry.ServiceWithEndpoints
+	err := r.pool.QueryRow(ctx, selectServiceByIDQuery, serviceID).Scan(&s.ID, &s.Name, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
-		return entity.Service{}, fmt.Errorf("get service: %w", err)
+		return registry.ServiceWithEndpoints{}, fmt.Errorf("get service by id: %w", err)
 	}
 
-	rows, err := r.pool.Query(ctx, selectEndpointsByServiceIDQuery, s.ID)
+	rows, err := r.pool.Query(ctx, selectEndpointsByServiceIDQuery, serviceID)
 	if err != nil {
-		return entity.Service{}, fmt.Errorf("get service endpoints: %w", err)
+		return registry.ServiceWithEndpoints{}, fmt.Errorf("get service endpoints: %w", err)
 	}
 	defer rows.Close()
 
+	s.Endpoints = make([]registry.Endpoint, 0, _defaultEntityCap)
 	for rows.Next() {
-		var e entity.Endpoint
-		if err := rows.Scan(&e.Method, &e.URL, &e.Secure); err != nil {
-			return entity.Service{}, fmt.Errorf("scan endpoint: %w", err)
+		var e registry.Endpoint
+		if err := rows.Scan(&e.ID, &e.Method, &e.URL, &e.Secure, &e.CreatedAt); err != nil {
+			return registry.ServiceWithEndpoints{}, fmt.Errorf("get service endpoints scan: %w", err)
 		}
 		s.Endpoints = append(s.Endpoints, e)
 	}
 	if err := rows.Err(); err != nil {
-		return entity.Service{}, fmt.Errorf("endpoints rows: %w", err)
+		return registry.ServiceWithEndpoints{}, fmt.Errorf("get service endpoints rows: %w", err)
 	}
 
 	return s, nil
