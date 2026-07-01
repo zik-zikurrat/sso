@@ -20,23 +20,27 @@ type Service struct {
 	Endpoints []Endpoint `json:"endpoints"`
 }
 
+func ToServiceEndpoint(service registry.ServiceWithEndpoints) Service {
+	endpoints := make([]Endpoint, 0, len(service.Endpoints))
+	for _, e := range service.Endpoints {
+		endpoints = append(endpoints, Endpoint{
+			Method:    e.Method,
+			URL:       e.URL,
+			Secure:    e.Secure,
+			CreatedAt: e.CreatedAt,
+		})
+	}
+	return Service{
+		ID:        service.ID,
+		Name:      service.Name,
+		Endpoints: endpoints,
+	}
+}
+
 func ToServiceEndpoints(services []registry.ServiceWithEndpoints) []Service {
 	outService := make([]Service, 0, len(services))
 	for _, service := range services {
-		endpoints := make([]Endpoint, 0, len(service.Endpoints))
-		for _, e := range service.Endpoints {
-			endpoints = append(endpoints, Endpoint{
-				Method:    e.Method,
-				URL:       e.URL,
-				Secure:    e.Secure,
-				CreatedAt: e.CreatedAt,
-			})
-		}
-		outService = append(outService, Service{
-			ID:        service.ID,
-			Name:      service.Name,
-			Endpoints: endpoints,
-		})
+		outService = append(outService, ToServiceEndpoint(service))
 	}
 	return outService
 }

@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"log/slog"
-	"sso/internal/entity"
 	"sso/internal/usecase/dto/registry"
 
 	"github.com/go-playground/validator/v10"
@@ -13,7 +12,7 @@ import (
 type RegistryUseCase interface {
 	RegisterService(ctx context.Context, in registry.CreateService) (string, error)
 	ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error)
-	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (entity.Service, error)
+	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (registry.ServiceWithEndpoints, error)
 }
 
 // V1 -.
