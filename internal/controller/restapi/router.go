@@ -46,6 +46,7 @@ func NewRouter(
 		apiV1Group.Use(middleware.LoggerMiddleware(l))
 		// Cors
 		apiV1Group.Use(cors.New())
+
 		v1.NewSSORoutes(
 			apiV1Group,
 			l,

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"sso/internal/controller/restapi/v1/request"
 	"sso/internal/controller/restapi/v1/response"
 	"sso/internal/usecase/dto/registry"
 
@@ -82,4 +83,41 @@ func (r *V1) DeleteService(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.SendStatus(http.StatusNoContent)
+}
+
+// @Summary     Update service
+// @Description Update service
+// @ID          updateService
+// @Tags  	    updateService
+// @Accept      json
+// @Produce     json
+// @Param       id  path string true "Service ID"
+// @Success     200
+// @Failure     400 {object} response.Error
+// @Failure     404 {object} response.Error
+// @Failure     500 {object} response.Error
+// @Router      /registry/service/{id} [patch]
+func (r *V1) UpdateService(ctx *fiber.Ctx) error {
+	var req request.UpdateService
+	serviceID, err := uuid.Parse(ctx.Params("id"))
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, "invalid service id")
+	}
+	if err := ctx.BodyParser(&req); err != nil {
+		r.l.Error("restapi - v1 - service", slog.String("error", err.Error()))
+		return errorResponse(ctx, http.StatusBadRequest, "Invalid request body")
+	}
+
+	if err := r.registry.UpdateService(ctx.UserContext(), registry.UpdateService{
+		ID:   serviceID,
+		Name: req.Name,
+	}); err != nil {
+		if errors.Is(err, registry.ErrServiceNotFound) {
+			return errorResponse(ctx, http.StatusNotFound, "service not found")
+		}
+		r.l.Error("restapi - v1 - service", slog.String("error", err.Error()))
+		return errorResponse(ctx, http.StatusInternalServerError, "error while updating service")
+	}
+
+	return ctx.SendStatus(http.StatusOK)
 }

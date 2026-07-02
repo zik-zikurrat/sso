@@ -14,6 +14,7 @@ type RegistryUseCase interface {
 	ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error)
 	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (registry.ServiceWithEndpoints, error)
 	DeleteService(ctx context.Context, serviceID uuid.UUID) error
+	UpdateService(ctx context.Context, in registry.UpdateService) error
 }
 
 // V1 -.

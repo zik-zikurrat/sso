@@ -119,5 +119,13 @@ func (r *RegistryRepo) DeleteService(ctx context.Context, serviceID uuid.UUID) e
 	return nil
 }
 
-// func (r *RegistryRepo) UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error) {
-// }
+func (r *RegistryRepo) UpdateService(ctx context.Context, in registry.UpdateService) error {
+	tag, err := r.pool.Exec(ctx, updateServiceQuery, in.ID, in.Name)
+	if err != nil {
+		return fmt.Errorf("update service: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return registry.ErrServiceNotFound
+	}
+	return nil
+}

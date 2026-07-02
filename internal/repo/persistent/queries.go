@@ -19,3 +19,6 @@ var selectServiceByIDQuery string
 
 //go:embed query/registry/delete_service.sql
 var deleteServiceQuery string
+
+//go:embed query/registry/update_service.sql
+var updateServiceQuery string
