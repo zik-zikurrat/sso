@@ -11,7 +11,7 @@ import (
 type RegistryRepo interface {
 	CreateService(ctx context.Context, in registry.CreateService) (string, error)
 	// UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error)
-	// DeleteService(ctx context.Context, in uuid.UUID) error
+	DeleteService(ctx context.Context, serviceID uuid.UUID) error
 	ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error)
 	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (registry.ServiceWithEndpoints, error)
 }
@@ -45,6 +45,14 @@ func (uc *UseCase) ListServiceEndpoints(ctx context.Context) ([]registry.Service
 		return nil, err
 	}
 	return services, nil
+}
+
+func (uc *UseCase) DeleteService(ctx context.Context, serviceID uuid.UUID) error {
+	if err := uc.r.DeleteService(ctx, serviceID); err != nil {
+		uc.l.Error("failed to delete service", slog.String("error", err.Error()))
+		return err
+	}
+	return nil
 }
 
 func (uc *UseCase) GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (registry.ServiceWithEndpoints, error) {

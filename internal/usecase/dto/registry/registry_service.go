@@ -1,10 +1,13 @@
 package registry
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var ErrServiceNotFound = errors.New("service not found")
 
 type Endpoint struct {
 	ID        uuid.UUID

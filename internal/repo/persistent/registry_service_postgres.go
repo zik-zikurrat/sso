@@ -108,7 +108,16 @@ func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, servi
 	return s, nil
 }
 
+func (r *RegistryRepo) DeleteService(ctx context.Context, serviceID uuid.UUID) error {
+	tag, err := r.pool.Exec(ctx, deleteServiceQuery, serviceID)
+	if err != nil {
+		return fmt.Errorf("delete service: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return registry.ErrServiceNotFound
+	}
+	return nil
+}
+
 // func (r *RegistryRepo) UpdateService(ctx context.Context, in registry.UpdateService) (uuid.UUID, error) {
-// }
-// func (r *RegistryRepo) DeleteService(ctx context.Context, in uuid.UUID) error {
 // }

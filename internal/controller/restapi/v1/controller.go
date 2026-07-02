@@ -13,6 +13,7 @@ type RegistryUseCase interface {
 	RegisterService(ctx context.Context, in registry.CreateService) (string, error)
 	ListServiceEndpoints(ctx context.Context) ([]registry.ServiceWithEndpoints, error)
 	GetServiceEndpointsByServiceID(ctx context.Context, in uuid.UUID) (registry.ServiceWithEndpoints, error)
+	DeleteService(ctx context.Context, serviceID uuid.UUID) error
 }
 
 // V1 -.
