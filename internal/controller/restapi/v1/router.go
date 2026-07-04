@@ -22,6 +22,7 @@ func NewSSORoutes(
 
 	{
 		// RegistryService
+		registryGroup.Post("/service", r.CreateService)
 		registryGroup.Get("/service", r.ListServiceEndpoints)
 		registryGroup.Get("/service/:id", r.GetServiceEndpointsByServiceID)
 		registryGroup.Patch("/service/:id", r.UpdateService)

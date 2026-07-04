@@ -31,7 +31,7 @@ func NewRegistryUseCase(l *slog.Logger, r RegistryRepo) *UseCase {
 func (uc *UseCase) RegisterService(ctx context.Context, in registry.CreateService) (string, error) {
 	serviceID, err := uc.r.CreateService(ctx, in)
 	if err != nil {
-		uc.l.Error("failed to create service", slog.String("name", in.Name))
+		uc.l.Error("failed to create service", slog.String("name", in.Name), slog.String("error", err.Error()))
 		return "", err
 	}
 
