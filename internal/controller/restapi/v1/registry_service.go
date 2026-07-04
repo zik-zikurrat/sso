@@ -12,6 +12,47 @@ import (
 	"github.com/google/uuid"
 )
 
+// @Summary     Create service
+// @Description Create a new service with its endpoints
+// @ID          createService
+// @Tags  	    createService
+// @Accept      json
+// @Produce     json
+// @Param       body body request.CreateService true "Service payload"
+// @Success     201
+// @Failure     400 {object} response.Error
+// @Failure     500 {object} response.Error
+// @Router      /registry/service [post]
+func (r *V1) CreateService(ctx *fiber.Ctx) error {
+	var req request.CreateService
+	if err := ctx.BodyParser(&req); err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, "invalid request body")
+	}
+	if err := r.v.Struct(req); err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, err.Error())
+	}
+
+	endpoints := make([]registry.Endpoint, 0, len(req.Endpoints))
+	for _, e := range req.Endpoints {
+		endpoints = append(endpoints, registry.Endpoint{
+			Method: e.Method,
+			URL:    e.URL,
+			Secure: e.Secure,
+		})
+	}
+
+	serviceID, err := r.registry.RegisterService(ctx.UserContext(), registry.CreateService{
+		Name:      req.Name,
+		Endpoints: endpoints,
+	})
+	if err != nil {
+		r.l.Error("restapi - v1 - CreateService", slog.String("error", err.Error()))
+		return errorResponse(ctx, http.StatusInternalServerError, "error while creating service")
+	}
+
+	return ctx.Status(http.StatusCreated).JSON(fiber.Map{"id": serviceID})
+}
+
 // @Summary     List service
 // @Description List service
 // @ID          listService

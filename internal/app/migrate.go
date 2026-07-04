@@ -2,9 +2,9 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"sso/internal/config"
+	"sso/internal/helper"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -18,8 +18,7 @@ const (
 )
 
 func Migrate(cfg *config.Config) {
-	dbDSN := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.PG.USER, cfg.PG.PASSWORD, cfg.PG.HOST, cfg.PG.PORT, cfg.PG.NAME, cfg.PG.SSL)
+	dbDSN := helper.GetDBDsn(cfg)
 
 	var (
 		attempts = _defaultAttempts
