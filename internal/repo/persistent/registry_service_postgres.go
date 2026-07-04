@@ -36,9 +36,8 @@ func (r *RegistryRepo) CreateService(ctx context.Context, in registry.CreateServ
 		return "", fmt.Errorf("create service: %w", err)
 	}
 
-	for i := 0; i < len(in.Endpoints); i++ {
-		currEndpoint := in.Endpoints[i]
-		if _, err := tx.Exec(ctx, insertEndpointQuery, serviceID, currEndpoint.Method, currEndpoint.URL, currEndpoint.Secure); err != nil {
+	for _, ep := range in.Endpoints {
+		if _, err := tx.Exec(ctx, insertEndpointQuery, serviceID, ep.Method, ep.URL, ep.Secure); err != nil {
 			return "", fmt.Errorf("create service endpoint insert: %w", err)
 		}
 	}
@@ -93,7 +92,7 @@ func (r *RegistryRepo) GetServiceEndpointsByServiceID(ctx context.Context, servi
 	}
 	defer rows.Close()
 
-	s.Endpoints = make([]registry.Endpoint, 0, _defaultEntityCap)
+	s.Endpoints = make([]registry.Endpoint, 0)
 	for rows.Next() {
 		var e registry.Endpoint
 		if err := rows.Scan(&e.ID, &e.Method, &e.URL, &e.Secure, &e.CreatedAt); err != nil {
