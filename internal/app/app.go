@@ -11,6 +11,7 @@ import (
 	grpcCtrl "sso/internal/controller/grpc"
 	"sso/internal/controller/restapi"
 	"sso/internal/repo/persistent"
+	"sso/internal/usecase/auth"
 	"sso/internal/usecase/registry"
 	grpcSrv "sso/pkg/grpc"
 	"sso/pkg/httpserver"
@@ -32,19 +33,20 @@ func Run(cfg *config.Config) error {
 	defer pg.Close()
 
 	// Repo
-	// userRepo := postgres.NewUserRepo(pg.Pool)
+	userRepo := persistent.NewUserRepo(pg.Pool)
+	sessionRepo := persistent.NewSessionRepo(pg.Pool)
 	registryRepo := persistent.NewRegistryRepo(pg.Pool)
 	// UseCase
-	// authUC := auth.NewUseCase(userRepo, log)
+	authUC := auth.NewUserUseCase(log, userRepo, sessionRepo, cfg.TokenTTL)
 	registryUC := registry.NewRegistryUseCase(log, registryRepo)
 	// Controller
-	// authCtrl := grpccontroller.NewAuthController(authUC, log)
+	authCtrl := grpcCtrl.NewAuthController(authUC)
 	registryCtrl := grpcCtrl.NewRegistryController(log, registryUC)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	grpcServer := grpcSrv.New(grpcCtrl.NewMux(registryCtrl), cfg, log)
+	grpcServer := grpcSrv.New(grpcCtrl.NewMux(authCtrl, registryCtrl), cfg, log)
 	go grpcServer.Start()
 
 	httpserver := httpserver.New(ctx, log, cfg)
