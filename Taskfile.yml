@@ -5,7 +5,7 @@ version: '3'
 
 vars:
   DB_DSN: "postgresql://postgres:postgres@localhost:5432/sso?sslmode=disable"
-  CACHE_ADDR: "redis://loclahost:6379/0"
+  CACHE_ADDR: "redis://localhost:6379/0"
 
 tasks:
   pg-up:
