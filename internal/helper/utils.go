@@ -20,6 +20,11 @@ func GetServerAddr(cfg *config.Config) string {
 	return addr
 }
 
+func GetRedisAddr(cfg *config.Config) string {
+	addr := fmt.Sprintf("redis://%s:%d/%d", cfg.Cache.HOST, cfg.Cache.PORT, cfg.Cache.DB)
+	return addr
+}
+
 func RandomString(n int) (string, error) {
 	result := make([]byte, n)
 
