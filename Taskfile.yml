@@ -5,6 +5,7 @@ version: '3'
 
 vars:
   DB_DSN: "postgresql://postgres:postgres@localhost:5432/sso?sslmode=disable"
+  CACHE_ADDR: "redis://loclahost:6379/0"
 
 tasks:
   pg-up:
@@ -26,6 +27,24 @@ tasks:
   pg-logs:
     cmds:
       - docker logs -f sso-postgres
+
+  ch-up:
+    desc: "Start local Redis in Docker"
+    cmds:
+      - |
+        docker run -d --name sso-cache \
+          -p 6379:6379 \
+          redis:7-alpine
+  
+  ch-down:
+    desc: "Stop and remove local Redis"
+    cmds:
+      - docker rm -f sso-cache
+
+  ch-logs:
+    desc: "Show Redis logs"
+    cmds:
+      - docker logs -f sso-cache
 
   mig-up:
     desc: "Apply migrations"
