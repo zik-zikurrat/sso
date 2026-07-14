@@ -1,0 +1,52 @@
+services:
+  db_sso:
+    image: postgres:14-alpine
+    container_name: db_sso
+    environment:
+      POSTGRES_USER: ${POSTGRES_SSO_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_SSO_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_SSO_DB}
+    volumes:
+      - db_sso_vol:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_SSO_USER} -d ${POSTGRES_SSO_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - training_net
+
+  cache:
+    image: redis:7-alpine
+    container_name: cache
+    ports:
+      - "${REDIS_PORT}:6379"
+    restart: unless-stopped
+    networks:
+      - training_net
+
+  training:
+      container_name: training
+      build:
+        context: .
+        dockerfile: ./Dockerfile
+      ports:
+        - ${TRAINING_PORT}:9045
+      environment:
+        CONFIG_PATH: config/docker.yaml
+        LLM_API_KEY: ${LLM_API_KEY}
+      depends_on:
+        db_training:
+          condition: service_healthy
+      restart: unless-stopped
+      networks:
+        - training_net
+networks:
+  training_net:
+
+volumes:
+  db_sso_vol:
+    driver: local
+  nats_vol:
+    driver: local
