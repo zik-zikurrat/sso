@@ -18,7 +18,6 @@ type Redis struct {
 func New(cfg *config.Config, l *slog.Logger) (*Redis, error) {
 	client := goredis.NewClient(&goredis.Options{
 		Addr:         helper.GetRedisAddr(cfg),
-		Password:     cfg.Cache.PASSWORD,
 		DB:           cfg.Cache.DB,
 		DialTimeout:  5 * time.Second, // ожидание установления tcp соединения
 		ReadTimeout:  3 * time.Second,
@@ -37,13 +36,11 @@ func New(cfg *config.Config, l *slog.Logger) (*Redis, error) {
 	return redis, nil
 }
 
-func (r *Redis) Close() error {
+func (r *Redis) Close() {
 	if r.Client != nil {
 		err := r.Client.Close()
 		if err != nil {
 			r.log.Error("failed to close redis client", slog.String("error", err.Error()))
-			return err
 		}
 	}
-	return nil
 }

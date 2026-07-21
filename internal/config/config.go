@@ -49,13 +49,16 @@ type GRPCConfig struct {
 }
 
 type SMTPConfig struct {
-	Password string `yaml:"smtp_password"`
-	Email    string `yaml:"smtp_email"`
+	Password string `yaml:"smtp_password" env-required:"true"`
+	Email    string `yaml:"smtp_email" env-required:"true"`
+	Host     string `yaml:"smtp_host" env-default:"smtp.gmail.com"`
+	Port     int    `yaml:"smtp_port" env-default:"587"`
 }
 
 type CacheConfig struct {
 	HOST string `yaml:"host"`
 	PORT int    `yaml:"port"`
+	DB   int    `yaml:"db"`
 }
 
 func MustLoad() *Config {
@@ -64,20 +67,25 @@ func MustLoad() *Config {
 		panic("config path is empty")
 	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config file does not exists: " + path)
+		panic("config file does not exist: " + path)
 	}
 
 	var config Config
 	if err := cleanenv.ReadConfig(path, &config); err != nil {
 		panic("failed to read config: " + err.Error())
 	}
+
 	return &config
 }
 
 func fetchConfigPath() string {
 	var res string
-	flag.StringVar(&res, "config", "", "path to config file")
-	flag.Parse()
+
+	if !flag.Parsed() {
+		flag.StringVar(&res, "config", "", "path to config file")
+		flag.Parse()
+	}
+
 	if res == "" {
 		res = os.Getenv("CONFIG_PATH")
 	}

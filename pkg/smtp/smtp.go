@@ -1,29 +1,39 @@
 package smtp
 
 import (
+	"fmt"
 	"log/slog"
 	"net/smtp"
 	"sso/internal/config"
 )
 
-func SendEmailNotification(subject string, body string, to []string, cfg *config.Config, log *slog.Logger) error {
+func SendEmailNotification(subject string, body string, to []string, cfg config.SMTPConfig, log *slog.Logger) error {
+	host := cfg.Host
+	if host == "" {
+		host = "smtp.gmail.com"
+	}
+
 	auth := smtp.PlainAuth(
 		"",
-		cfg.SMTP.Email,
-		cfg.SMTP.Password,
-		"smtp.gmail.com",
+		cfg.Email,
+		cfg.Password,
+		host,
 	)
-	msg := "Subject: " + subject + "\n" + body
+
+	msg := fmt.Sprintf("Subject: %s\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\n\n%s", subject, body)
+
+	addr := fmt.Sprintf("%s:%d", host, cfg.Port)
+
 	err := smtp.SendMail(
-		"smtp.gmail.com:587",
+		addr,
 		auth,
-		cfg.SMTP.Email,
+		cfg.Email,
 		to,
 		[]byte(msg),
 	)
 	if err != nil {
-		log.Error("error while sending email", "error", err.Error())
-		return err
+		log.Error("failed to send email", slog.String("error", err.Error()), slog.String("to", to[0]))
+		return fmt.Errorf("smtp send error: %w", err)
 	}
 	return nil
 }

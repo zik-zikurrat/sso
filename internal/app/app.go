@@ -13,6 +13,7 @@ import (
 	"sso/internal/repo/persistent"
 	"sso/internal/usecase/auth"
 	"sso/internal/usecase/registry"
+	"sso/pkg/cache"
 	grpcSrv "sso/pkg/grpc"
 	"sso/pkg/httpserver"
 	sloghandler "sso/pkg/logger"
@@ -25,6 +26,7 @@ func Run(cfg *config.Config) error {
 	Migrate(cfg)
 	log := SetupLogger(cfg.Logging)
 	log.Info("starting application", slog.String("host", cfg.Server.HOST), slog.Int("port", cfg.Server.PORT))
+	// POSTGRES
 	pg, err := postgres.New(cfg, log)
 	if err != nil {
 		log.Error("app - Run - postgres.New", slog.String("error", err.Error()))
@@ -32,12 +34,19 @@ func Run(cfg *config.Config) error {
 	}
 	defer pg.Close()
 
+	// CACHE
+	redis, err := cache.New(cfg, log)
+	if err != nil {
+		log.Error("app - Run - cache.New", slog.String("error", err.Error()))
+	}
+	defer redis.Close()
+
 	// Repo
 	userRepo := persistent.NewUserRepo(pg.Pool)
 	sessionRepo := persistent.NewSessionRepo(pg.Pool)
 	registryRepo := persistent.NewRegistryRepo(pg.Pool)
 	// UseCase
-	authUC := auth.NewUserUseCase(log, userRepo, sessionRepo, cfg.TokenTTL)
+	authUC := auth.NewUserUseCase(log, userRepo, sessionRepo, redis, cfg.TokenTTL, cfg.SMTP)
 	registryUC := registry.NewRegistryUseCase(log, registryRepo)
 	// Controller
 	authCtrl := grpcCtrl.NewAuthController(authUC)
